@@ -28,6 +28,9 @@ export function useChat() {
 
   const generateResponse = async (userQuestion: string): Promise<string> => {
     try {
+      // Add a small delay to make loading indicator visible (remove in production)
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
@@ -45,6 +48,45 @@ export function useChat() {
     } catch (error) {
       console.error('API call failed:', error);
       throw error;
+    }
+  };
+
+  const sendMessageDirect = async (messageText: string) => {
+    if (!messageText.trim() || isLoading) return;
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      text: messageText,
+      isUser: true,
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setIsLoading(true);
+
+    try {
+      const response = await generateResponse(messageText);
+      
+      const botMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: response,
+        isUser: false,
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, botMessage]);
+    } catch (error) {
+      console.error('Error generating response:', error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: ERROR_MESSAGES.API_ERROR,
+        isUser: false,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+      setTimeout(() => inputRef.current?.focus(), 100);
     }
   };
 
@@ -94,6 +136,7 @@ export function useChat() {
     setInputValue,
     isLoading,
     sendMessage,
+    sendMessageDirect,
     messagesEndRef,
     inputRef,
     quickSuggestions: QUICK_SUGGESTIONS

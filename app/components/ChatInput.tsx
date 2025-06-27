@@ -4,8 +4,10 @@ interface ChatInputProps {
   inputValue: string;
   onInputChange: (value: string) => void;
   onSendMessage: () => void;
+  onSendMessageDirect?: (message: string) => void;
   isLoading: boolean;
   suggestions: readonly string[];
+  autoSendSuggestions?: boolean;
 }
 
 export interface ChatInputRef {
@@ -16,8 +18,10 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(({
   inputValue, 
   onInputChange, 
   onSendMessage, 
+  onSendMessageDirect,
   isLoading, 
-  suggestions 
+  suggestions,
+  autoSendSuggestions = false
 }, ref) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -33,12 +37,33 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(({
   };
 
   const handleSuggestionClick = (suggestion: string) => {
-    onInputChange(suggestion);
-    setTimeout(() => textareaRef.current?.focus(), 0);
+    if (autoSendSuggestions && onSendMessageDirect) {
+      onSendMessageDirect(suggestion);
+    } else {
+      onInputChange(suggestion);
+      setTimeout(() => textareaRef.current?.focus(), 0);
+    }
   };
 
   return (
     <div className="border-t border-gray-200 p-4 bg-white flex-shrink-0">
+      {autoSendSuggestions && (
+        <div className="mb-3 flex flex-wrap gap-2">
+          {suggestions.map((suggestion) => (
+            <button
+              key={suggestion}
+              onClick={() => handleSuggestionClick(suggestion)}
+              disabled={isLoading}
+              className={`px-3 py-1 text-xs rounded-full transition-colors bg-blue-100 text-blue-700 hover:bg-blue-200 border border-blue-300 ${
+                isLoading ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+            >
+              {suggestion}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="flex space-x-3">
         <div className="flex-1 relative">
           <textarea
@@ -46,7 +71,7 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(({
             value={inputValue}
             onChange={(e) => onInputChange(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Ask me about Thoughtful AI's agents (EVA, CAM, PHIL)..."
+            placeholder="Or type your own question and press Enter..."
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
             rows={1}
             disabled={isLoading}
@@ -61,17 +86,22 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(({
         </button>
       </div>
       
-      <div className="mt-3 flex flex-wrap gap-2">
-        {suggestions.map((suggestion) => (
-          <button
-            key={suggestion}
-            onClick={() => handleSuggestionClick(suggestion)}
-            className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors"
-          >
-            {suggestion}
-          </button>
-        ))}
-      </div>
+      {!autoSendSuggestions && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {suggestions.map((suggestion) => (
+            <button
+              key={suggestion}
+              onClick={() => handleSuggestionClick(suggestion)}
+              disabled={isLoading}
+              className={`px-3 py-1 text-xs rounded-full transition-colors bg-gray-100 text-gray-700 hover:bg-gray-200 ${
+                isLoading ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+            >
+              {suggestion}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 });

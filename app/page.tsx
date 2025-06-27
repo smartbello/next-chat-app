@@ -13,6 +13,7 @@ export default function Home() {
     setInputValue,
     isLoading,
     sendMessage,
+    sendMessageDirect,
     messagesEndRef,
     inputRef,
     quickSuggestions
@@ -42,8 +43,10 @@ export default function Home() {
             inputValue={inputValue}
             onInputChange={setInputValue}
             onSendMessage={sendMessage}
+            onSendMessageDirect={sendMessageDirect}
             isLoading={isLoading}
             suggestions={quickSuggestions}
+            autoSendSuggestions={true}
           />
         </div>
       </div>
