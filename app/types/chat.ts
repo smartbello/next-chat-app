@@ -8,8 +8,4 @@ export interface Message {
 export interface QuestionAnswer {
   question: string;
   answer: string;
-}
-
-export interface ChatbotData {
-  questions: QuestionAnswer[];
 } 

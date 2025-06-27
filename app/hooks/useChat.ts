@@ -1,21 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { Message } from '../types/chat';
-import { findBestMatch, getFallbackResponse } from '../utils/questionMatcher';
-import { THOUGHTFUL_AI_DATA } from '../data/thoughtfulAI';
 import { ChatInputRef } from '../components/ChatInput';
-
-const QUICK_SUGGESTIONS = [
-  'Tell me about EVA',
-  'What does CAM do?',
-  'How does PHIL work?',
-  'Benefits of Thoughtful AI'
-] as const;
+import { QUICK_SUGGESTIONS, DEFAULT_WELCOME_MESSAGE, ERROR_MESSAGES } from '../constants/chat';
 
 export function useChat() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: "Hello! I'm your Thoughtful AI customer support assistant. How can I help you today?",
+      text: DEFAULT_WELCOME_MESSAGE,
       isUser: false,
       timestamp: new Date()
     }
@@ -35,9 +27,25 @@ export function useChat() {
   }, [messages]);
 
   const generateResponse = async (userQuestion: string): Promise<string> => {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    const bestMatch = findBestMatch(userQuestion, THOUGHTFUL_AI_DATA.questions);
-    return bestMatch || getFallbackResponse(userQuestion);
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: userQuestion }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.response;
+    } catch (error) {
+      console.error('API call failed:', error);
+      throw error;
+    }
   };
 
   const sendMessage = async () => {
@@ -69,7 +77,7 @@ export function useChat() {
       console.error('Error generating response:', error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: "I'm sorry, I encountered an error. Please try again.",
+        text: ERROR_MESSAGES.API_ERROR,
         isUser: false,
         timestamp: new Date()
       };

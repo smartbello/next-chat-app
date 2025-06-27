@@ -1,5 +1,3 @@
-import { UI_CONSTANTS } from '../constants/chat';
-
 export default function LoadingIndicator() {
   return (
     <div className="flex justify-start">
