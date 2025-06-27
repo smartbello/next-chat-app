@@ -2,6 +2,10 @@
 
 A modern customer support AI agent built with Next.js 15 and TypeScript. Answers questions about Thoughtful AI's healthcare automation agents (EVA, CAM, PHIL).
 
+## 🌐 Live Demo
+
+**Try it out:** [https://thoughtful-ai.vercel.app](https://thoughtful-ai.vercel.app)
+
 ## Quick Start
 
 ```bash
